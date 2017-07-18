@@ -314,13 +314,34 @@ var handle = function (req,res,stack) {
         var middleware = stack.shift();
         if(middleware){
             // 传入next函数自身，是中间件能够执行结束后递归
-            middleware(req,res,next);
+            try{
+                middleware(req,res,next);
+            }catch(ex){
+                next(ex);
+            }
+            
         }
     }
 
     // 启动执行
     next()
 }
+
+
+// 异步的处理
+
+var session = function(req,res,next){
+	var id = req.cookies.sessionid;
+	store.get(id,function(err,session){
+        if(err){
+            // 将异常通过next方法传递
+            return next(err)
+        }
+        req.session = session;
+        next();
+	})
+}
+
 
 
 // 异常处理函数
@@ -344,6 +365,8 @@ var handle500 = function (err,req,res,stack) {
     next()
 
 }
+
+
 
 
 
